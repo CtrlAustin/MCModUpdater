@@ -1,1 +1,4 @@
 indium~modrinth
+sodium~modrinth
+lithium~modrinth
+iris~modrinth

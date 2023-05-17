@@ -23,34 +23,41 @@ def clr():
     # os.system('cls')
     print('')
     print('###################################')
-    print('# Minecraft mod downloader v0.0.1 #')
+    print('# Minecraft mod downloader v0.1.1 #')
     print('###################################')
     print('')
 
 
 def init():
     if exists('mods.txt'):
-        main()
+        print('mods.txt found!')
     else:
-        os.mkdir(fileDirectory + "/mods")
+        print('mods.txt not found!\nadd mods to the file and reload this script.')
         mods = open('mods.txt', 'x')
         mods.close()
-        main()
 
+    if os.path.exists(fileDirectory + '/mods'):
+        print('mod folder found!')
+        print('skipping setup...')
+    else:
+        print('creating mods folder...')
+        os.mkdir(fileDirectory + "/mods")
+
+    main()
 
 def main():
     clr()
     print(modpath + '\n')
-    action = input('Download latest mods: 1 \nDownload a specific version: 2 \nAbout: 3 \nQuit: 4 \n')
+    action = input('Download a specific version: 1 \nDownload latest mods (not recommended): 2 \nAbout: 3 \nQuit: 4 \n')
     if action == '1':
-        clr()
-        print('Downloading latest mods')
-        findlatest()
-
-    elif action == '2':
         clr()
         version = input("Enter a version number (x.x.x) \n")
         findspecific(version)
+
+    elif action == '2':
+        clr()
+        print('Downloading latest mods')
+        findlatest()
 
     elif action == '3':
         clr()
@@ -75,8 +82,8 @@ def findlatest():
             modcount = modcount + 1
             modname, modorigin = mod.split(seperator)
             if modcount < 1:
-                input("No mods found! add mods to the mods.txt file like this (modname~modorigin) \nPress enter to continue")
-            else:# modorigin == "modrith":
+                input("No mods found! add mods to the mods.txt file like this 'modname~modorigin' \nPress enter to continue")
+            else:
                 modrinthURL = "https://modrinth.com/mod/" + modname + "/versions"
                 page = requests.get(modrinthURL)
                 soup = BeautifulSoup(page.content, "html.parser")
@@ -85,29 +92,29 @@ def findlatest():
                     supports = element.find("div", class_="version__supports")
                     item = supports.find_all("span")
                     for content in item:
-                        if not hasdownload:
+                        if not exists(modpath + modname + "-" + latestver + ".jar"):
                             if content.text.count(".") > 1:
                                 if content.text == latestver:
                                     versionNum = content.text
                                     downloadlink = element.find("a", href=True)
-                                    hasdownload = True
+                                    # hasdownload = True
                                     print("downloading " + modname + " v" + latestver + " from " + modorigin + "\n" + downloadlink['href'])
                                     download(downloadlink['href'], modname, versionNum)
+    print('downloaded ' + str(modcount) + " mods")
     f.close()
     main()
-
 
 def findspecific(version):
     hasdownload = False
     modcount = 0
-    requestver = version
+    ver = version
     with open('mods.txt') as f:
         for mod in f.read().splitlines():
             modcount = modcount + 1
             modname, modorigin = mod.split(seperator)
             if modcount < 1:
-                input("No mods found! add mods to the mods.txt file like this (modname~modorigin) \nPress enter to continue")
-            else:# modorigin == "modrith":
+                input("No mods found! add mods to the mods.txt file like this 'modname~modorigin' \nPress enter to continue")
+            else:
                 modrinthURL = "https://modrinth.com/mod/" + modname + "/versions"
                 page = requests.get(modrinthURL)
                 soup = BeautifulSoup(page.content, "html.parser")
@@ -116,27 +123,25 @@ def findspecific(version):
                     supports = element.find("div", class_="version__supports")
                     item = supports.find_all("span")
                     for content in item:
-                        if not hasdownload:
+                        if not exists(modpath + modname + "-" + ver + ".jar"):
                             if content.text.count(".") > 1:
-                                if content.text == requestver:
+                                if content.text == ver:
                                     versionNum = content.text
                                     downloadlink = element.find("a", href=True)
-                                    hasdownload = True
-                                    print("downloading " + modname + " v" + versionNum + " from " + modorigin + "\n" + downloadlink['href'])
+                                    print("downloading " + modname + " v" + ver + " from " + modorigin + "\n" + downloadlink['href'])
                                     download(downloadlink['href'], modname, versionNum)
+    print('downloaded ' + str(modcount) + " mods")
     f.close()
     main()
 
 
 def download(download, modname, version):
-    getlatest = True
-    if getlatest == True:
-        print("Downloading...")
-        r = requests.get(download)
-        filename = modpath + modname + "-" + version + ".jar"
-        with open(filename, 'wb') as f:
-            f.write(r.content)
-        print("Download Complete!")
+    print("Downloading...")
+    r = requests.get(download)
+    filename = modpath + modname + "-" + version + ".jar"
+    with open(filename, 'wb') as f:
+        f.write(r.content)
+    print("Download Complete!")
 
 
 init()
